@@ -56,5 +56,20 @@ export function toSentenceCase(str: string | null | undefined): string {
   // Bare unit designators: "4b" -> "4B".
   out = out.replace(/\b(\d+[a-z])\b/g, (match: string) => match.toUpperCase());
 
+  // Run-together unit designators: "apt1rb" -> "APT1RB", "gf1" -> "GF1". HPD
+  // writes these without a space, so the rule above never sees them.
+  //
+  // The bounds are deliberate, and each one was set by looking at what changed
+  // across live records:
+  //  - two to four leading letters, so ordinary words that happen to end in a
+  //    number are left alone ("material4th" stays as HPD typed it)
+  //  - must start the token, which excludes ordinals ("1st", "2nd")
+  //  - not preceded by a slash or word character, which keeps measurements
+  //    intact ("0.5mg/cm2" is a lead-paint reading, not an apartment)
+  out = out.replace(
+    /(^|[^\w/])([a-z]{2,4}\d+[a-z\d]*)\b/g,
+    (_m, prefix: string, token: string) => prefix + token.toUpperCase(),
+  );
+
   return out;
 }

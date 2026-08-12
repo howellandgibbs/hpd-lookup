@@ -99,9 +99,16 @@
         --hpd-accent: #1e3ac8;
         --hpd-accent-text: #ffe3d5;
         --hpd-focus: #1e3ac8;
-        --hpd-open: #1e3ac8;
-        --hpd-closed: rgba(10, 15, 51, 0.55);
-        --hpd-dismissed: rgba(10, 15, 51, 0.4);
+        /*
+         * The H&G palette has no semantic status colors — cobalt is the only
+         * accent, and it reads as punctuation rather than urgency. These are
+         * generic semantics chosen to sit on the peach ground, both verified
+         * at AA (5.4:1 and 5.2:1). Severity has to be legible here; this is a
+         * housing tool before it is a brand surface.
+         */
+        --hpd-open: #a8341f;
+        --hpd-closed: #2d6a4f;
+        --hpd-dismissed: rgba(10, 15, 51, 0.5);
         --hpd-radius: 4px;
       }
 
