@@ -16,8 +16,8 @@ settled and adds the widget.
   through CSS custom properties.
 - `hpd-results` and `hpd-error` events, plus a `search(address)` method, for
   driving the widget from your own UI.
-- Demo site at [hpd-lookup.howellandgibbs.com](https://hpd-lookup.howellandgibbs.com),
-  with an example building per borough and a raw-versus-parsed comparison.
+- Demo site at [hpd-lookup.vercel.app](https://hpd-lookup.vercel.app), with an
+  example building per borough and a raw-versus-parsed comparison.
 
 ### Fixed
 
