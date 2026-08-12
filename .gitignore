@@ -1,5 +1,7 @@
 node_modules/
 dist/
+# Built into demo/ by tsup so the deployable site is self-contained.
+demo/widget.js
 coverage/
 *.log
 .DS_Store

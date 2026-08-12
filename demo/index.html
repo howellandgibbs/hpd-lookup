@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>hpd-lookup — NYC housing violations in plain English</title>
+    <style>
+      :root {
+        --ink: #1a1a1a;
+        --muted: #5c5c5c;
+        --bg: #ffffff;
+        --subtle: #f5f5f4;
+        --border: #d4d4d0;
+        --accent: #1c5d99;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --ink: #f0efec;
+          --muted: #a8a5a0;
+          --bg: #16161a;
+          --subtle: #202026;
+          --border: #3a3a42;
+          --accent: #6ba3d6;
+        }
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        padding: 2rem 1.25rem 5rem;
+        font: 16px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif;
+        color: var(--ink);
+        background: var(--bg);
+      }
+      main { max-width: 46rem; margin: 0 auto; }
+      h1 { font-size: 1.75rem; margin: 0 0 0.35rem; }
+      .tagline { color: var(--muted); margin: 0 0 2rem; }
+      h2 { font-size: 1.05rem; margin: 2.5rem 0 0.75rem; }
+      code, pre { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.85rem; }
+      pre {
+        background: var(--subtle);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 0.75rem;
+        overflow-x: auto;
+        margin: 0;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+      .examples { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.25rem; }
+      .examples button {
+        font: inherit;
+        font-size: 0.875rem;
+        padding: 0.35rem 0.7rem;
+        color: var(--ink);
+        background: var(--subtle);
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        cursor: pointer;
+      }
+      .examples button:hover { border-color: var(--accent); }
+      .widget-frame {
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 1.25rem;
+      }
+      .compare { display: grid; gap: 1rem; grid-template-columns: 1fr; }
+      @media (min-width: 46rem) { .compare { grid-template-columns: 1fr 1fr; } }
+      .compare h3 { font-size: 0.8125rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin: 0 0 0.4rem; }
+      .empty { color: var(--muted); font-style: italic; }
+      footer { margin-top: 3rem; color: var(--muted); font-size: 0.875rem; }
+      a { color: var(--accent); }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>hpd-lookup</h1>
+      <p class="tagline">
+        NYC publishes every HPD housing violation as open data. This turns it into something a
+        tenant can read.
+      </p>
+
+      <div class="examples" id="examples" aria-label="Example addresses"></div>
+
+      <div class="widget-frame">
+        <hpd-lookup id="widget" label="NYC address" limit="50"></hpd-lookup>
+      </div>
+
+      <h2>Raw HPD record → parsed output</h2>
+      <div class="compare">
+        <div>
+          <h3>What HPD returns</h3>
+          <pre id="raw"><span class="empty">Run a lookup above.</span></pre>
+        </div>
+        <div>
+          <h3>What the parser returns</h3>
+          <pre id="parsed"><span class="empty">Run a lookup above.</span></pre>
+        </div>
+      </div>
+
+      <footer>
+        <p>
+          MIT licensed ·
+          <a href="https://github.com/howellandgibbs/hpd-lookup">GitHub</a> ·
+          <a href="https://www.npmjs.com/package/@howellandgibbs/hpd-lookup">npm</a>
+        </p>
+        <p>
+          Data from NYC Planning Labs GeoSearch and NYC Open Data. Plain-English labels are a
+          translation, not legal advice.
+        </p>
+      </footer>
+    </main>
+
+    <script type="module">
+      import './widget.js';
+
+      // One per borough, each verified to have violations on record. Buildings
+      // with no violations make a poor playground — the interesting output is
+      // the parsed description, and an empty result shows none of it.
+      const EXAMPLES = [
+        '605 West 156 Street, Manhattan',
+        '1520 Sedgwick Avenue, Bronx',
+        '654 Park Place, Brooklyn',
+        '90-11 35th Avenue, Queens',
+        '160 Park Hill Avenue, Staten Island',
+      ];
+
+      const widget = document.getElementById('widget');
+      const list = document.getElementById('examples');
+
+      for (const address of EXAMPLES) {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.textContent = address;
+        button.addEventListener('click', () => widget.search(address));
+        list.append(button);
+      }
+
+      widget.addEventListener('hpd-results', (event) => {
+        const { violations } = event.detail;
+        const first = violations[0];
+        const raw = document.getElementById('raw');
+        const parsed = document.getElementById('parsed');
+
+        if (!first) {
+          raw.textContent = '(no violations on record)';
+          parsed.textContent = '(no violations on record)';
+          return;
+        }
+
+        raw.textContent = JSON.stringify(
+          {
+            novdescription: first.raw.novdescription,
+            currentstatus: first.raw.currentstatus,
+            violationstatus: first.raw.violationstatus,
+            class: first.raw.class,
+          },
+          null,
+          2,
+        );
+
+        parsed.textContent = JSON.stringify(
+          {
+            description: first.description,
+            location: first.location,
+            status: first.status.label,
+            state: first.status.state,
+            severity: first.severity,
+            rentImpairing: first.rentImpairing,
+          },
+          null,
+          2,
+        );
+      });
+    </script>
+  </body>
+</html>
