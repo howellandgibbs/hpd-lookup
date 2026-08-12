@@ -4,6 +4,16 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>hpd-lookup — NYC housing violations in plain English</title>
+    <meta
+      name="description"
+      content="An open-source parser and web component that turns NYC HPD housing violation records into plain English. MIT licensed, zero dependencies."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Domine:wght@400..700&family=Inter:wght@400;500;600&family=Public+Sans:wght@400;500;700;900&display=swap"
+      rel="stylesheet"
+    />
     <style>
       :root {
         --ink: #1a1a1a;
@@ -26,16 +36,20 @@
       * { box-sizing: border-box; }
       body {
         margin: 0;
-        padding: 2rem 1.25rem 5rem;
+        padding: 3rem 1.25rem 6rem;
         font: 16px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif;
         color: var(--ink);
         background: var(--bg);
       }
-      main { max-width: 46rem; margin: 0 auto; }
-      h1 { font-size: 1.75rem; margin: 0 0 0.35rem; }
-      .tagline { color: var(--muted); margin: 0 0 2rem; }
-      h2 { font-size: 1.05rem; margin: 2.5rem 0 0.75rem; }
-      code, pre { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.85rem; }
+      main { max-width: 54rem; margin: 0 auto; }
+      h1 { font-size: 2.1rem; margin: 0 0 0.4rem; letter-spacing: -0.02em; }
+      .tagline { color: var(--muted); font-size: 1.05rem; margin: 0 0 1.5rem; max-width: 34rem; }
+      .meta { display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; font-size: 0.875rem; margin-bottom: 2.5rem; }
+      .meta a { color: var(--accent); }
+      h2 { font-size: 1.3rem; margin: 3.5rem 0 0.4rem; letter-spacing: -0.01em; }
+      h2 + p { color: var(--muted); margin: 0 0 1.25rem; max-width: 40rem; }
+      h3 { font-size: 0.8125rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin: 0 0 0.5rem; }
+      code, pre { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.8125rem; }
       pre {
         background: var(--subtle);
         border: 1px solid var(--border);
@@ -43,49 +57,161 @@
         padding: 0.75rem;
         overflow-x: auto;
         margin: 0;
-        white-space: pre-wrap;
-        word-break: break-word;
+      }
+      .before {
+        background: var(--subtle);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 0.9rem;
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 0.8125rem;
+        line-height: 1.5;
+        color: var(--muted);
+        margin: 0 0 1rem;
       }
       .examples { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.25rem; }
       .examples button {
-        font: inherit;
-        font-size: 0.875rem;
-        padding: 0.35rem 0.7rem;
-        color: var(--ink);
-        background: var(--subtle);
-        border: 1px solid var(--border);
-        border-radius: 999px;
-        cursor: pointer;
+        font: inherit; font-size: 0.875rem; padding: 0.35rem 0.7rem;
+        color: var(--ink); background: var(--subtle);
+        border: 1px solid var(--border); border-radius: 999px; cursor: pointer;
       }
       .examples button:hover { border-color: var(--accent); }
-      .widget-frame {
-        border: 1px solid var(--border);
-        border-radius: 8px;
-        padding: 1.25rem;
+      .frame { border: 1px solid var(--border); border-radius: 8px; padding: 1.25rem; }
+
+      /* Theme showcase */
+      .themes { display: grid; gap: 2rem; grid-template-columns: 1fr; }
+      @media (min-width: 52rem) { .themes { grid-template-columns: 1fr 1fr; } }
+      .theme-card { min-width: 0; }
+      .theme-surface { border-radius: 10px; padding: 1.25rem; margin-bottom: 0.75rem; }
+      .theme-hg { background: #ffe3d5; }
+      .theme-tt { background: #e3f0f0; }
+
+      /* Only CSS custom properties differ between these two. */
+      .theme-hg hpd-lookup {
+        --hpd-font: "Inter", system-ui, sans-serif;
+        --hpd-font-display: "Domine", Georgia, serif;
+        --hpd-weight-strong: 500;
+        --hpd-text: #0a0f33;
+        --hpd-text-muted: rgba(10, 15, 51, 0.55);
+        --hpd-bg: #ffe3d5;
+        --hpd-bg-subtle: #eeccbc;
+        --hpd-border: rgba(10, 15, 51, 0.18);
+        --hpd-accent: #1e3ac8;
+        --hpd-accent-text: #ffe3d5;
+        --hpd-focus: #1e3ac8;
+        --hpd-open: #1e3ac8;
+        --hpd-closed: rgba(10, 15, 51, 0.55);
+        --hpd-dismissed: rgba(10, 15, 51, 0.4);
+        --hpd-radius: 4px;
       }
+
+      .theme-tt hpd-lookup {
+        --hpd-font: "Public Sans", system-ui, sans-serif;
+        --hpd-font-display: "Public Sans", system-ui, sans-serif;
+        --hpd-weight-strong: 700;
+        --hpd-label-transform: uppercase;
+        --hpd-label-spacing: 0.07em;
+        --hpd-text: #111111;
+        --hpd-text-muted: #6b6b6b;
+        --hpd-bg: #e3f0f0;
+        --hpd-bg-subtle: #fafaf8;
+        --hpd-border: #cfe0e0;
+        --hpd-accent: #0d7377;
+        --hpd-accent-text: #ffffff;
+        --hpd-focus: #08494c;
+        --hpd-open: #8c1c20;
+        --hpd-closed: #3d3d3d;
+        --hpd-dismissed: #6b6b6b;
+        --hpd-radius: 6px;
+      }
+
+      footer { margin-top: 4rem; color: var(--muted); font-size: 0.875rem; }
+      footer a { color: var(--accent); }
       .compare { display: grid; gap: 1rem; grid-template-columns: 1fr; }
       @media (min-width: 46rem) { .compare { grid-template-columns: 1fr 1fr; } }
-      .compare h3 { font-size: 0.8125rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin: 0 0 0.4rem; }
       .empty { color: var(--muted); font-style: italic; }
-      footer { margin-top: 3rem; color: var(--muted); font-size: 0.875rem; }
-      a { color: var(--accent); }
     </style>
   </head>
   <body>
     <main>
       <h1>hpd-lookup</h1>
       <p class="tagline">
-        NYC publishes every HPD housing violation as open data. This turns it into something a
-        tenant can read.
+        New York City publishes every HPD housing violation as open data. This turns it into
+        something a tenant can read.
       </p>
+      <p class="meta">
+        <a href="https://github.com/howellandgibbs/hpd-lookup">GitHub</a>
+        <a href="https://www.npmjs.com/package/@howellandgibbs/hpd-lookup">npm</a>
+        <span>MIT licensed</span>
+        <span>Zero dependencies</span>
+      </p>
+
+      <p class="before">
+        § 27-2005 ADM CODE REPAIR THE BROKEN OR DEFECTIVE PLASTERED SURFACES AND PAINT IN A UNIFORM
+        COLOR AT EAST AND WEST WALLS IN THE 2ND ROOM FROM NORTH LOCATED AT APT 4B, 1ST STORY
+      </p>
+
+      <h2>Try it</h2>
+      <p>Any NYC address. The examples are real buildings, one per borough.</p>
 
       <div class="examples" id="examples" aria-label="Example addresses"></div>
 
-      <div class="widget-frame">
+      <div class="frame">
         <hpd-lookup id="widget" label="NYC address" limit="50"></hpd-lookup>
       </div>
 
-      <h2>Raw HPD record → parsed output</h2>
+      <h2>One component, any brand</h2>
+      <p>
+        The same element, twice. Nothing differs between them except CSS custom properties set on
+        the host — no forked stylesheet, no build flag, and nothing reaching inside the shadow root.
+      </p>
+
+      <div class="themes">
+        <div class="theme-card">
+          <h3>Howell &amp; Gibbs</h3>
+          <div class="theme-surface theme-hg">
+            <hpd-lookup
+              label="NYC address"
+              address="605 West 156 Street, Manhattan"
+              auto
+              limit="3"
+            ></hpd-lookup>
+          </div>
+<pre><code>hpd-lookup {
+  --hpd-font: "Inter", sans-serif;
+  --hpd-font-display: "Domine", serif;
+  --hpd-weight-strong: 500;
+  --hpd-bg: #ffe3d5;
+  --hpd-text: #0a0f33;
+  --hpd-accent: #1e3ac8;
+  --hpd-radius: 4px;
+}</code></pre>
+        </div>
+
+        <div class="theme-card">
+          <h3>Tenant Triage NYC</h3>
+          <div class="theme-surface theme-tt">
+            <hpd-lookup
+              label="Look up your building"
+              address="654 Park Place, Brooklyn"
+              auto
+              limit="3"
+            ></hpd-lookup>
+          </div>
+<pre><code>hpd-lookup {
+  --hpd-font: "Public Sans", sans-serif;
+  --hpd-weight-strong: 700;
+  --hpd-label-transform: uppercase;
+  --hpd-bg: #e3f0f0;
+  --hpd-text: #111111;
+  --hpd-accent: #0d7377;
+  --hpd-open: #8c1c20;
+}</code></pre>
+        </div>
+      </div>
+
+      <h2>Raw record, parsed output</h2>
+      <p>What HPD returns, and what comes back out. Run a lookup above to fill this in.</p>
       <div class="compare">
         <div>
           <h3>What HPD returns</h3>
@@ -97,15 +223,18 @@
         </div>
       </div>
 
+      <h2>Install</h2>
+<pre><code>npm install @howellandgibbs/hpd-lookup</code></pre>
+
       <footer>
         <p>
-          MIT licensed ·
-          <a href="https://github.com/howellandgibbs/hpd-lookup">GitHub</a> ·
-          <a href="https://www.npmjs.com/package/@howellandgibbs/hpd-lookup">npm</a>
+          Built by <a href="https://howellandgibbs.com">Howell &amp; Gibbs</a>. Extracted from
+          <a href="https://github.com/howellandgibbs/tenant-triage-nyc">Tenant Triage NYC</a>, a free
+          guide for NYC renters.
         </p>
         <p>
-          Data from NYC Planning Labs GeoSearch and NYC Open Data. Plain-English labels are a
-          translation, not legal advice.
+          Data from NYC Planning Labs GeoSearch and NYC Open Data. Not affiliated with the City of
+          New York. Plain-English labels are a translation, not legal advice.
         </p>
       </footer>
     </main>
@@ -113,9 +242,6 @@
     <script type="module">
       import './widget.js';
 
-      // One per borough, each verified to have violations on record. Buildings
-      // with no violations make a poor playground — the interesting output is
-      // the parsed description, and an empty result shows none of it.
       const EXAMPLES = [
         '605 West 156 Street, Manhattan',
         '1520 Sedgwick Avenue, Bronx',
@@ -136,8 +262,7 @@
       }
 
       widget.addEventListener('hpd-results', (event) => {
-        const { violations } = event.detail;
-        const first = violations[0];
+        const first = event.detail.violations[0];
         const raw = document.getElementById('raw');
         const parsed = document.getElementById('parsed');
 
