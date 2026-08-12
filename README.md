@@ -1,5 +1,10 @@
 # @howellandgibbs/hpd-lookup
 
+[![npm](https://img.shields.io/npm/v/@howellandgibbs/hpd-lookup?color=1c5d99)](https://www.npmjs.com/package/@howellandgibbs/hpd-lookup)
+[![CI](https://github.com/howellandgibbs/hpd-lookup/actions/workflows/ci.yml/badge.svg)](https://github.com/howellandgibbs/hpd-lookup/actions/workflows/ci.yml)
+[![license](https://img.shields.io/npm/l/@howellandgibbs/hpd-lookup?color=1c5d99)](./LICENSE)
+[![zero dependencies](https://img.shields.io/badge/dependencies-0-1c5d99)](./package.json)
+
 Look up NYC housing violations by address, and get them back in plain English.
 
 New York City publishes every HPD housing violation as open data. It is technically public and practically unreadable — all-caps prose with the legal citation glued to the front:
@@ -21,7 +26,10 @@ The parser is the point. The lookup is the easy half.
 - Zero runtime dependencies
 - ESM + CJS, with TypeScript types
 - Works in Node 18+, Deno, Bun, and the browser
+- Ships an embeddable `<hpd-lookup>` web component, no framework required
 - MIT licensed
+
+**[Try it →](https://hpd-lookup.howellandgibbs.com)**
 
 ## Install
 
@@ -89,6 +97,69 @@ Translates one HPD status code. Returns `{ label, state, raw, known }`, where `s
 
 The citation stripper on its own. Returns `{ main, location }`.
 
+## The widget
+
+If you want the whole thing — an address box, autocomplete, and rendered results — import the widget entry point. It registers `<hpd-lookup>` as a custom element.
+
+```html
+<script type="module">
+  import '@howellandgibbs/hpd-lookup/widget';
+</script>
+
+<hpd-lookup label="NYC address" states="open"></hpd-lookup>
+```
+
+It is a plain custom element with no framework runtime, because it is meant to be embedded in someone else's page. The core package stays DOM-free, so importing `@howellandgibbs/hpd-lookup` in Node never pulls any of this in.
+
+### Attributes
+
+| Attribute | Description |
+| --- | --- |
+| `address` | Prefill the input |
+| `auto` | Look up the prefilled address on connect, without waiting for a submit |
+| `states` | Comma-separated `open`, `closed`, `dismissed` |
+| `classes` | Comma-separated HPD classes `A`, `B`, `C`, `I` |
+| `limit` | Max records to request |
+| `app-token` | Socrata app token, which raises the rate limit |
+| `label` | Override the input label text |
+
+### Events
+
+Both bubble, and carry the same objects the functions return.
+
+```js
+document.querySelector('hpd-lookup').addEventListener('hpd-results', (event) => {
+  const { building, violations } = event.detail;
+});
+
+document.querySelector('hpd-lookup').addEventListener('hpd-error', (event) => {
+  const { error } = event.detail; // an HpdLookupError
+});
+```
+
+There is also a `search(address)` method, if you would rather drive it from your own UI.
+
+### Theming
+
+Every color, font, and radius is a CSS custom property set on the host, so you never have to override a selector inside the shadow root:
+
+```css
+hpd-lookup {
+  --hpd-font: "Your Face", sans-serif;
+  --hpd-accent: #7c3aed;
+  --hpd-radius: 2px;
+  --hpd-open: #b91c1c;
+}
+```
+
+Light and dark palettes are both defined; dark follows `prefers-color-scheme` unless you override the tokens yourself.
+
+### Accessibility
+
+The input is a labelled combobox: arrow keys move through suggestions with `aria-activedescendant` tracking the highlight, Enter selects, Escape closes. Result counts and errors are announced through a persistent `role="status"` live region. Focus is always visible, and `prefers-reduced-motion` is respected. It has been checked at 375px wide in both color schemes.
+
+Errors are written as sentences someone can act on — "No NYC building matched that address. Try adding the borough." — rather than surfaced as codes.
+
 ### Options
 
 | Option | Type | Default | Applies to |
@@ -150,6 +221,12 @@ This package reads two public APIs at request time. Neither is under our control
 ## Origin
 
 Extracted from [tenant-triage-nyc](https://github.com/howellandgibbs/tenant-triage-nyc), a free guide for NYC tenants dealing with bad landlords. The lookup there needed a parser; the parser turned out to be the reusable part.
+
+## More
+
+- [Architecture and design decisions](./docs/architecture.md) — how the citation stripping and status translation actually work, and what the package deliberately does not do
+- [Contributing](./CONTRIBUTING.md) — the most useful contribution is a violation description that parses badly
+- [Changelog](./CHANGELOG.md)
 
 ## License
 
