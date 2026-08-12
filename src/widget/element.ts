@@ -200,7 +200,11 @@ export class HpdLookupElement extends HTMLElement {
       case 'ArrowUp':
         if (!open) return;
         event.preventDefault();
-        this.#highlight((this.#activeIndex - 1 + this.#suggestions.length) % this.#suggestions.length);
+        // From nothing highlighted (-1), Up goes to the last option, not the
+        // first — plain modular arithmetic gets this backwards.
+        this.#highlight(
+          this.#activeIndex <= 0 ? this.#suggestions.length - 1 : this.#activeIndex - 1,
+        );
         break;
       case 'Enter':
         event.preventDefault();
