@@ -34,4 +34,27 @@ describe('toSentenceCase', () => {
   it('leaves Roman numerals alone', () => {
     expect(toSentenceCase('CLASS III VIOLATION')).toBe('Class III violation');
   });
+
+  // HPD runs the designator into the number with no space. These were all
+  // taken from live records.
+  describe('run-together unit designators', () => {
+    it('uppercases them', () => {
+      expect(toSentenceCase('LOCATED AT APT1RB LOWER LEVEL')).toBe('Located at APT1RB lower level');
+      expect(toSentenceCase('AT GF1')).toBe('At GF1');
+      expect(toSentenceCase('AT APT44, 4TH STORY')).toBe('At APT44, 4th story');
+    });
+
+    it('leaves measurements alone', () => {
+      // A lead-paint reading, not an apartment. Uppercasing it reads as nonsense.
+      expect(toSentenceCase('LEAD LEVEL OF 0.5MG/CM2 FOUND')).toBe('Lead level of 0.5mg/cm2 found');
+    });
+
+    it('leaves ordinary words that end in a number alone', () => {
+      expect(toSentenceCase('DEFECTIVE MATERIAL4TH FLOOR')).toBe('Defective material4th floor');
+    });
+
+    it('leaves ordinals alone', () => {
+      expect(toSentenceCase('IN THE 2ND ROOM FROM NORTH')).toBe('In the 2nd room from north');
+    });
+  });
 });

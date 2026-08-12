@@ -16,6 +16,10 @@ settled and adds the widget.
   through CSS custom properties.
 - `hpd-results` and `hpd-error` events, plus a `search(address)` method, for
   driving the widget from your own UI.
+- Typography theming tokens: `--hpd-font-display`, `--hpd-weight-strong`,
+  `--hpd-label-transform`, and `--hpd-label-spacing`. Added after theming the
+  widget to two real brand guides, one of which forbids bold body text — a rule
+  a host cannot enforce from outside the shadow root without a token for it.
 - Demo site at [hpd-lookup.vercel.app](https://hpd-lookup.vercel.app), with an
   example building per borough and a raw-versus-parsed comparison.
 

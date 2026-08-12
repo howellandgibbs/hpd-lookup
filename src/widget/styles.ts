@@ -14,8 +14,18 @@ export const WIDGET_STYLES = /* css */ `
   :host {
     /* Type */
     --hpd-font: system-ui, -apple-system, "Segoe UI", sans-serif;
+    /* Headings and the input label, when a brand sets a separate display face. */
+    --hpd-font-display: var(--hpd-font);
     --hpd-font-size: 1rem;
     --hpd-line-height: 1.5;
+    /*
+     * Weight for labels, status pills, and the submit button. Exposed because
+     * some brands forbid bold body text outright, and a theme cannot reach
+     * inside the shadow root to override it.
+     */
+    --hpd-weight-strong: 600;
+    --hpd-label-transform: none;
+    --hpd-label-spacing: normal;
 
     /* Color */
     --hpd-text: #1a1a1a;
@@ -66,8 +76,11 @@ export const WIDGET_STYLES = /* css */ `
   .field { display: flex; flex-direction: column; gap: 0.35rem; }
 
   label {
+    font-family: var(--hpd-font-display);
     font-size: 0.875rem;
-    font-weight: 600;
+    font-weight: var(--hpd-weight-strong);
+    text-transform: var(--hpd-label-transform);
+    letter-spacing: var(--hpd-label-spacing);
   }
 
   .hint { font-size: 0.8125rem; color: var(--hpd-text-muted); }
@@ -96,7 +109,7 @@ export const WIDGET_STYLES = /* css */ `
   button {
     padding: 0.5rem 1rem;
     font: inherit;
-    font-weight: 600;
+    font-weight: var(--hpd-weight-strong);
     color: var(--hpd-accent-text);
     background: var(--hpd-accent);
     border: 1px solid transparent;
@@ -169,7 +182,7 @@ export const WIDGET_STYLES = /* css */ `
     align-items: center;
     gap: 0.35rem;
     font-size: 0.8125rem;
-    font-weight: 600;
+    font-weight: var(--hpd-weight-strong);
   }
 
   .dot {
@@ -198,7 +211,7 @@ export const WIDGET_STYLES = /* css */ `
     gap: 0.75rem;
   }
 
-  .rent-impairing { font-weight: 600; color: var(--hpd-open); }
+  .rent-impairing { font-weight: var(--hpd-weight-strong); color: var(--hpd-open); }
 
   @media (prefers-reduced-motion: no-preference) {
     button, [role="option"] { transition: background-color 120ms ease; }

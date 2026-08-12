@@ -308,6 +308,31 @@ describe('request lifecycle', () => {
     expect(violations(element)).toHaveLength(0);
   });
 
+  it('keeps focus inside the widget when the button disables itself', async () => {
+    // Disabling the focused element sends focus to the body, so the next
+    // keystroke goes nowhere and a keyboard user is stranded mid-task.
+    const element = mount();
+    const button = shadow(element).querySelector('button')!;
+    button.focus();
+    expect(shadow(element).activeElement).toBe(button);
+
+    await element.search('654 Park Place, Brooklyn');
+
+    expect(document.activeElement).not.toBe(document.body);
+    expect(shadow(element).activeElement).toBe(input(element));
+  });
+
+  it('does not steal focus when the button was not focused', async () => {
+    const element = mount();
+    const outside = document.createElement('input');
+    document.body.append(outside);
+    outside.focus();
+
+    await element.search('654 Park Place, Brooklyn');
+
+    expect(document.activeElement).toBe(outside);
+  });
+
   it('re-enables the submit button after a failure', async () => {
     vi.stubGlobal('fetch', mockFetch({ status: 500 }));
     const element = mount();

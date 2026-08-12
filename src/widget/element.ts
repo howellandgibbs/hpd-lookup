@@ -253,6 +253,12 @@ export class HpdLookupElement extends HTMLElement {
     this.#controller = new AbortController();
     const id = ++this.#requestId;
 
+    // Disabling the element that currently has focus drops focus to the
+    // document body, which strands keyboard users and makes the next keystroke
+    // go nowhere. Move focus to the input first — it is where someone would
+    // want to be anyway if they need to correct the address.
+    if (this.#root.activeElement === this.#button) this.#input.focus();
+
     this.#button.disabled = true;
     this.#results.replaceChildren();
     this.#setStatus('Looking up violations…');
