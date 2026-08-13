@@ -85,9 +85,13 @@ open matters more than anything else on the record, and the status text is an
 unreliable guide to it:
 
 - `INVALID CERTIFICATION` and `FALSE CERTIFICATION` both sound resolved. They
-  mean the landlord claimed the work was done and HPD disagreed. The violation
-  is still open. Any parser that keys on the word "invalid" gets this exactly
-  backwards, on roughly 59,000 records.
+  mean the landlord claimed the work was done and HPD disagreed, so the
+  violation is still open. Together they cover about 59,000 records. A parser
+  that keys on the word "invalid" gets the first of them exactly backwards —
+  about 48,700 records — while landing on the right answer for the second
+  purely because the word it matches on happens not to appear there. That is
+  the argument for mapping codes explicitly rather than pattern-matching the
+  text: the failure is silent, and so is the accidental success.
 - `VIOLATION WILL BE REINSPECTED` is genuinely ambiguous — across the dataset it
   splits about 57/43 between closed and open. No amount of reading the string
   will tell you which.
