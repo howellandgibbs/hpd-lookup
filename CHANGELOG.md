@@ -61,9 +61,13 @@ an audit of 6,996 records showed were wrong:
   description text.
 
 Status translation was rebuilt against the live dataset. The original map
-covered 12 of 23 codes, two of its keys matched nothing, and `INVALID
-CERTIFICATION` and `FALSE CERTIFICATION` were being reported as resolved when
-both mean the violation is still open.
+covered 12 of 23 codes and two of its keys matched nothing. It also reported
+`INVALID CERTIFICATION` as dismissed, when it means the landlord claimed a fix
+and HPD rejected it — the violation is still open. That affected about 48,700
+records. `FALSE CERTIFICATION` means the same thing and was landing on "open"
+already, but only because the old heuristic happened to match neither of the
+words it looked for. Both are mapped explicitly now, which is the point:
+pattern-matching status text gets the right answer by luck until it doesn't.
 
 [1.0.0]: https://github.com/howellandgibbs/hpd-lookup/releases/tag/v1.0.0
 [0.1.0]: https://github.com/howellandgibbs/hpd-lookup/releases/tag/v0.1.0
