@@ -29,7 +29,7 @@ The parser is the point. The lookup is the easy half.
 - Ships an embeddable `<hpd-lookup>` web component, no framework required
 - MIT licensed
 
-**[Try it →](https://hpd-lookup.vercel.app)**
+**[Try it →](https://hpd-lookup.howellandgibbs.com)**
 
 ## Install
 
