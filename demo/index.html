@@ -137,6 +137,9 @@
       footer a { color: var(--accent); }
       .compare { display: grid; gap: 1rem; grid-template-columns: 1fr; }
       @media (min-width: 46rem) { .compare { grid-template-columns: 1fr 1fr; } }
+      /* Grid items default to min-width: auto, which lets a long unwrapped
+         line widen the track instead of scrolling inside the pre. */
+      .compare > div { min-width: 0; }
       .empty { color: var(--muted); font-style: italic; }
     </style>
   </head>
