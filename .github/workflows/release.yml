@@ -47,6 +47,19 @@ jobs:
 
       - run: npm ci
 
+      - name: Pick the dist-tag
+        # `npm publish` writes to `latest` whatever the version says, so a
+        # prerelease would otherwise become the default install for everyone.
+        # Anything with a hyphen (1.2.0-rc.1) is a prerelease by semver.
+        run: |
+          version="$(node -p "require('./package.json').version")"
+          case "$version" in
+            *-*) tag=next ;;
+            *)   tag=latest ;;
+          esac
+          echo "Publishing $version to dist-tag $tag."
+          echo "dist_tag=$tag" >> "$GITHUB_ENV"
+
       # prepublishOnly runs typecheck, test and build, so a broken release
       # fails here rather than reaching the registry.
-      - run: npm publish
+      - run: npm publish --tag "$dist_tag"
