@@ -3,7 +3,7 @@
 All notable changes to this project are documented here. This project follows
 [semantic versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.1.0] — 2026-08-21
 
 ### Added
 
@@ -30,6 +30,14 @@ All notable changes to this project are documented here. This project follows
 - `<hpd-lookup>` shows `displayLabel` in the suggestion list and the result
   status. Lookups still run against the raw `label`, which is what GeoSearch
   returned and is therefore guaranteed to resolve.
+
+### Note on the type change
+
+`Building` gained a required field. Nothing that *reads* a `Building` is
+affected, which is every normal use of it — but TypeScript code that builds one
+by hand, most likely a test fixture, will need the new key. Called out here
+rather than filed under Added, because a required field is the kind of thing
+that should not be a surprise.
 
 ## [1.0.0] — 2026-08-14
 
@@ -97,5 +105,6 @@ already, but only because the old heuristic happened to match neither of the
 words it looked for. Both are mapped explicitly now, which is the point:
 pattern-matching status text gets the right answer by luck until it doesn't.
 
+[1.1.0]: https://github.com/howellandgibbs/hpd-lookup/releases/tag/v1.1.0
 [1.0.0]: https://github.com/howellandgibbs/hpd-lookup/releases/tag/v1.0.0
 [0.1.0]: https://github.com/howellandgibbs/hpd-lookup/releases/tag/v0.1.0
