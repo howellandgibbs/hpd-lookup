@@ -127,6 +127,15 @@ export interface Building {
   bin: string | null;
   /** The full label GeoSearch returned, e.g. "100 GOLD STREET, Manhattan, NY, USA". */
   label: string;
+  /**
+   * {@link Building.label} in title case, ready to put on screen, e.g.
+   * "100 Gold Street, Manhattan, NY, USA".
+   *
+   * GeoSearch upper-cases the street and not the borough, so the raw label is
+   * not presentable as-is. `label` still holds it verbatim for anything that
+   * needs to match upstream exactly.
+   */
+  displayLabel: string;
   borough: string | null;
   houseNumber: string | null;
   street: string | null;
