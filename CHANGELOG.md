@@ -3,6 +3,16 @@
 All notable changes to this project are documented here. This project follows
 [semantic versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.1-rc.0] — 2026-08-21
+
+No changes to the published package. This prerelease exists to verify the
+trusted-publishing workflow added in #10 against the real registry — the OIDC
+handshake, the tag/`package.json` match, the ancestry check, and
+`prepublishOnly` — without putting an unproven pipeline in charge of `latest`.
+
+It publishes to the `next` dist-tag, so `npm i @howellandgibbs/hpd-lookup`
+continues to resolve to 1.1.0. Nothing should install this deliberately.
+
 ## [1.1.0] — 2026-08-21
 
 ### Added
@@ -105,6 +115,7 @@ already, but only because the old heuristic happened to match neither of the
 words it looked for. Both are mapped explicitly now, which is the point:
 pattern-matching status text gets the right answer by luck until it doesn't.
 
+[1.1.1-rc.0]: https://github.com/howellandgibbs/hpd-lookup/releases/tag/v1.1.1-rc.0
 [1.1.0]: https://github.com/howellandgibbs/hpd-lookup/releases/tag/v1.1.0
 [1.0.0]: https://github.com/howellandgibbs/hpd-lookup/releases/tag/v1.0.0
 [0.1.0]: https://github.com/howellandgibbs/hpd-lookup/releases/tag/v0.1.0

@@ -1,6 +1,6 @@
 {
   "name": "@howellandgibbs/hpd-lookup",
-  "version": "1.1.0",
+  "version": "1.1.1-rc.0",
   "description": "Look up NYC HPD housing violations by address or BBL, and translate them into plain English. Zero runtime dependencies.",
   "license": "MIT",
   "author": "Howell & Gibbs",
