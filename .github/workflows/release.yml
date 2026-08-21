@@ -1,0 +1,52 @@
+name: Release
+
+# Publishes when a v* tag is pushed, which is the flow we already follow:
+# release PR bumps the version, merge, tag, push.
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+  # Lets the runner mint the short-lived OIDC token npm checks against the
+  # trusted publisher registered for this repo. Without it, publish fails.
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          # Full history so the ancestry check below can see origin/main.
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v5
+        with:
+          # Trusted publishing needs Node >=22.14; 24 is already in the CI matrix.
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+          cache: npm
+
+      # Node 24 ships npm 11.x, but trusted publishing needs >=11.5.1
+      # specifically, so pin the floor rather than trusting the bundled version.
+      - run: npm install -g npm@^11.5.1
+
+      - name: Check the tag matches package.json
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          pkg="$(node -p "require('./package.json').version")"
+          if [ "$tag" != "$pkg" ]; then
+            echo "Tag $GITHUB_REF_NAME implies $tag, package.json says $pkg." >&2
+            exit 1
+          fi
+
+      - name: Check the tag is on main
+        # A tag pushed from a branch that never merged would otherwise publish.
+        run: git merge-base --is-ancestor "$GITHUB_SHA" origin/main
+
+      - run: npm ci
+
+      # prepublishOnly runs typecheck, test and build, so a broken release
+      # fails here rather than reaching the registry.
+      - run: npm publish
