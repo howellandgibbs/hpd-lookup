@@ -69,6 +69,14 @@ Same, for a building you have already identified. Takes a 10-digit Borough-Block
 
 Just the geocoding step. Returns the matching buildings, best match first, dropping candidates with no BBL (intersections, parks, some new construction).
 
+Each `Building` carries both `label` — the string GeoSearch returned, verbatim — and `displayLabel`, the same address in title case and ready for the screen.
+
+### `formatAddress(label)`
+
+GeoSearch shouts the street and not the borough: `1742 EAST 172 STREET, Bronx, NY, USA`. This puts it in title case — `1742 East 172 Street, Bronx, NY, USA` — keeping `NY` and `USA` upper, lowercasing joining words mid-name, and leaving house numbers, ranges, fractions, and ordinals alone.
+
+Reach for this rather than `toSentenceCase()`, which exists for HPD's prose and correctly leaves the word after a leading number alone — which on an address means leaving the whole thing lower case.
+
 ### `parseViolation(raw)`
 
 Turns one raw Socrata record into a `ParsedViolation`. Pure, synchronous, no network and no DOM — safe to run over a dataset you already have.

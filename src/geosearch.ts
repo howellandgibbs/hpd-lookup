@@ -1,6 +1,7 @@
 import type { AddressLookupOptions, Building, RequestOptions } from './types.js';
 import { HpdLookupError } from './errors.js';
 import { fetchJson } from './http.js';
+import { formatAddress } from './address.js';
 
 /**
  * NYC Planning Labs GeoSearch, the city's own geocoder. It is the only free
@@ -78,10 +79,13 @@ function toBuilding(feature: GeoSearchFeature): Building | null {
   const coords = Array.isArray(feature.geometry?.coordinates) ? feature.geometry.coordinates : null;
   const [lon, lat] = (coords ?? []) as unknown[];
 
+  const label = props.label ?? props.name ?? 'Unknown address';
+
   return {
     bbl,
     bin: pad.bin?.trim() || null,
-    label: props.label ?? props.name ?? 'Unknown address',
+    label,
+    displayLabel: formatAddress(label),
     borough: props.borough ?? null,
     houseNumber: props.housenumber ?? null,
     street: props.street ?? null,

@@ -188,7 +188,8 @@ describe('lookup', () => {
     await element.search('654 Park Place, Brooklyn');
 
     expect(violations(element)).toHaveLength(1);
-    expect(status(element).textContent).toContain('1 violation for 654 PARK PLACE');
+    // The status shows displayLabel, not the shouted label GeoSearch returned.
+    expect(status(element).textContent).toContain('1 violation for 654 Park Place');
     expect(shadow(element).querySelector('.description')!.textContent).toBe('Repair the broken plaster');
   });
 

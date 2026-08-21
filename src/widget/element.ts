@@ -169,7 +169,7 @@ export class HpdLookupElement extends HTMLElement {
       const option = el(
         'li',
         { role: 'option', id: `${this.#input.id}-opt-${index}`, 'aria-selected': 'false' },
-        el('span', {}, building.label),
+        el('span', {}, building.displayLabel),
       );
       if (building.borough) option.append(el('span', { class: 'option-borough' }, building.borough));
       option.addEventListener('mousedown', (e) => e.preventDefault());
@@ -236,8 +236,10 @@ export class HpdLookupElement extends HTMLElement {
   #choose(index: number): void {
     const building = this.#suggestions[index];
     if (!building) return;
-    this.#input.value = building.label;
+    this.#input.value = building.displayLabel;
     this.#closeSuggestions();
+    // Search on the raw label: it is what GeoSearch itself returned, so it is
+    // guaranteed to resolve. displayLabel is only ever for the screen.
     void this.#lookup(building.label, building);
   }
 
@@ -292,12 +294,12 @@ export class HpdLookupElement extends HTMLElement {
 
   #renderResults(building: Building, violations: ParsedViolation[]): void {
     if (!violations.length) {
-      this.#setStatus(`No violations on record for ${building.label}.`);
+      this.#setStatus(`No violations on record for ${building.displayLabel}.`);
       return;
     }
 
     const count = violations.length === 1 ? '1 violation' : `${violations.length} violations`;
-    this.#setStatus(`${count} for ${building.label}.`);
+    this.#setStatus(`${count} for ${building.displayLabel}.`);
 
     for (const violation of violations) {
       this.#results.append(this.#renderViolation(violation));

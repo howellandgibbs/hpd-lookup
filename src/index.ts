@@ -17,6 +17,7 @@ export { parseViolation, cleanDescription, HPD_ACTION_VERBS, CITATION_WORDS, CLA
 export type { CleanedDescription } from './parse.js';
 export { translateStatus, STATUS_MAP, normalizeStatusKey } from './status.js';
 export { toSentenceCase, PRESERVE_UPPERCASE } from './text.js';
+export { formatAddress, ADDRESS_PRESERVE_UPPERCASE } from './address.js';
 export { HpdLookupError, isHpdLookupError } from './errors.js';
 export type { HpdErrorCode } from './errors.js';
 

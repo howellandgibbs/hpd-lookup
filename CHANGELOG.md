@@ -3,6 +3,34 @@
 All notable changes to this project are documented here. This project follows
 [semantic versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- `formatAddress()`, and a `displayLabel` field on `Building`, for putting a
+  GeoSearch label on screen. GeoSearch returns the street shouted and the
+  borough not — `1742 EAST 172 STREET, Bronx, NY, USA` — and there was no good
+  way to display that. `toSentenceCase()` is the wrong tool: it exists for HPD
+  prose, where a leading house number correctly leaves the next word alone, so
+  running it on an address returns the whole thing lower case. `Building.label`
+  still holds the upstream string verbatim.
+
+  The formatter title-cases the shouted portion, keeps `NY` and `USA` upper,
+  lowercases joining words mid-name (`1 Avenue of the Americas`) but not after
+  the house number (`1 The Bowery`), and leaves house numbers, ranges,
+  fractions, and ordinals alone. `McDonald Avenue` is handled; `Mac` names
+  deliberately are not, because `MACON`, `MACY`, `MACE`, and `MACDOUGAL` all
+  appear in the HPD data and no rule tells them apart.
+
+  Checked against 1,200 distinct real street names from `wvxf-dwi5`: none came
+  out still shouting, and none came out with an unintended lower-case word.
+
+### Changed
+
+- `<hpd-lookup>` shows `displayLabel` in the suggestion list and the result
+  status. Lookups still run against the raw `label`, which is what GeoSearch
+  returned and is therefore guaranteed to resolve.
+
 ## [1.0.0] — 2026-08-14
 
 First stable release. The public API is unchanged from `0.1.0`; this marks it as
