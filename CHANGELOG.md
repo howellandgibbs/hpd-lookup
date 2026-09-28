@@ -3,7 +3,11 @@
 All notable changes to this project are documented here. This project follows
 [semantic versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.2.0] — 2026-09-28
+
+Lookups now return every violation on a building instead of stopping silently
+at a fixed count. If you are on 1.1.0, upgrade: any building with more than
+1,000 violations has been coming back incomplete, with nothing to say so.
 
 ### Fixed
 
@@ -151,6 +155,7 @@ already, but only because the old heuristic happened to match neither of the
 words it looked for. Both are mapped explicitly now, which is the point:
 pattern-matching status text gets the right answer by luck until it doesn't.
 
+[1.2.0]: https://github.com/howellandgibbs/hpd-lookup/releases/tag/v1.2.0
 [1.1.1-rc.0]: https://github.com/howellandgibbs/hpd-lookup/releases/tag/v1.1.1-rc.0
 [1.1.0]: https://github.com/howellandgibbs/hpd-lookup/releases/tag/v1.1.0
 [1.0.0]: https://github.com/howellandgibbs/hpd-lookup/releases/tag/v1.0.0
