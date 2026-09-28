@@ -213,6 +213,47 @@ export const WIDGET_STYLES = /* css */ `
 
   .rent-impairing { font-weight: var(--hpd-weight-strong); color: var(--hpd-open); }
 
+  /* Pager — one page of results is ever in the DOM. */
+  .pager {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--hpd-gap);
+    margin-top: var(--hpd-gap);
+    padding-top: var(--hpd-gap);
+    border-top: 1px solid var(--hpd-border);
+  }
+
+  /* display:flex above would otherwise beat the hidden attribute. */
+  .pager[hidden] { display: none; }
+
+  .pager-button {
+    color: var(--hpd-accent);
+    background: transparent;
+    border: 1px solid var(--hpd-border);
+  }
+
+  .pager-button[disabled] { color: var(--hpd-text-muted); }
+
+  .pager-range {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--hpd-text-muted);
+    text-align: center;
+  }
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
   @media (prefers-reduced-motion: no-preference) {
     button, [role="option"] { transition: background-color 120ms ease; }
   }

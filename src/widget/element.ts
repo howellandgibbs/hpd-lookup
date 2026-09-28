@@ -3,7 +3,10 @@ import { searchAddresses } from '../geosearch.js';
 import { lookupByBBL } from '../violations.js';
 import { isHpdLookupError } from '../errors.js';
 import { WIDGET_STYLES } from './styles.js';
-import { summarize } from './summary.js';
+import { describePage, summarize } from './summary.js';
+
+/** Violations rendered per page unless the `page-size` attribute says otherwise. */
+const DEFAULT_PAGE_SIZE = 50;
 
 const DEBOUNCE_MS = 250;
 
@@ -34,7 +37,7 @@ const DEBOUNCE_MS = 250;
  */
 export class HpdLookupElement extends HTMLElement {
   static get observedAttributes(): string[] {
-    return ['label', 'address'];
+    return ['label', 'address', 'page-size'];
   }
 
   #root: ShadowRoot;
@@ -43,6 +46,12 @@ export class HpdLookupElement extends HTMLElement {
   #listbox!: HTMLUListElement;
   #status!: HTMLParagraphElement;
   #results!: HTMLUListElement;
+  #pager!: HTMLElement;
+  #prev!: HTMLButtonElement;
+  #next!: HTMLButtonElement;
+  #range!: HTMLParagraphElement;
+  /** Speaks page changes only, so loading results is not announced twice. */
+  #announcer!: HTMLSpanElement;
   #label!: HTMLLabelElement;
 
   #suggestions: Building[] = [];
@@ -52,6 +61,9 @@ export class HpdLookupElement extends HTMLElement {
   #controller: AbortController | null = null;
   /** Monotonic request id, so a slow response can't overwrite a newer one. */
   #requestId = 0;
+  /** Every violation from the last lookup; only one page is ever in the DOM. */
+  #shown: ParsedViolation[] = [];
+  #page = 0;
 
   constructor() {
     super();
@@ -74,6 +86,10 @@ export class HpdLookupElement extends HTMLElement {
     if (!this.#input) return;
     if (name === 'label') this.#label.textContent = value ?? 'Address';
     if (name === 'address' && value !== null) this.#input.value = value;
+    if (name === 'page-size' && this.#shown.length) {
+      this.#page = 0;
+      this.#renderPage();
+    }
   }
 
   /** Look up an address programmatically, as if it had been submitted. */
@@ -118,10 +134,20 @@ export class HpdLookupElement extends HTMLElement {
     this.#status = el('p', { class: 'status', role: 'status', 'aria-live': 'polite' }) as HTMLParagraphElement;
     this.#results = el('ul', { class: 'results' }) as HTMLUListElement;
 
+    this.#prev = el('button', { type: 'button', class: 'pager-button' }, '‹ Previous') as HTMLButtonElement;
+    this.#next = el('button', { type: 'button', class: 'pager-button' }, 'Next ›') as HTMLButtonElement;
+    this.#range = el('p', { class: 'pager-range' }) as HTMLParagraphElement;
+    this.#pager = el('nav', { class: 'pager', 'aria-label': 'Results pages', hidden: '' });
+    this.#pager.append(this.#prev, this.#range, this.#next);
+    this.#announcer = el('span', { class: 'sr-only', 'aria-live': 'polite' }) as HTMLSpanElement;
+
     combobox.append(this.#input, this.#listbox);
     row.append(combobox, this.#button);
     field.append(this.#label, row);
-    this.#root.append(style, field, this.#status, this.#results);
+    this.#root.append(style, field, this.#status, this.#results, this.#pager, this.#announcer);
+
+    this.#prev.addEventListener('click', () => this.#goTo(this.#page - 1));
+    this.#next.addEventListener('click', () => this.#goTo(this.#page + 1));
 
     this.#input.addEventListener('input', () => this.#onInput());
     this.#input.addEventListener('keydown', (e) => this.#onKeydown(e));
@@ -263,7 +289,11 @@ export class HpdLookupElement extends HTMLElement {
     if (this.#root.activeElement === this.#button) this.#input.focus();
 
     this.#button.disabled = true;
+    this.#shown = [];
+    this.#page = 0;
     this.#results.replaceChildren();
+    this.#pager.hidden = true;
+    this.#announcer.textContent = '';
     this.#setStatus('Looking up violations…');
 
     try {
@@ -306,11 +336,52 @@ export class HpdLookupElement extends HTMLElement {
     truncated: boolean,
   ): void {
     this.#setStatus(summarize(building.displayLabel, violations.length, total, truncated));
-    if (!violations.length) return;
+    this.#shown = violations;
+    this.#page = 0;
+    this.#renderPage();
+  }
 
-    for (const violation of violations) {
-      this.#results.append(this.#renderViolation(violation));
+  /** Show another page, then scroll its first row into view and announce it. */
+  #goTo(page: number): void {
+    this.#page = page;
+    this.#renderPage();
+    this.#results.scrollIntoView({ block: 'start' });
+    this.#announcer.textContent = this.#range.textContent ?? '';
+  }
+
+  #renderPage(): void {
+    const size = this.#pageSize();
+    const pages = Math.max(1, Math.ceil(this.#shown.length / size));
+    this.#page = Math.min(Math.max(0, this.#page), pages - 1);
+
+    const start = this.#page * size;
+    const slice = this.#shown.slice(start, start + size);
+    this.#results.replaceChildren(...slice.map((v) => this.#renderViolation(v)));
+
+    if (pages === 1) {
+      this.#pager.hidden = true;
+      this.#range.textContent = '';
+      return;
     }
+
+    const atStart = this.#page === 0;
+    const atEnd = this.#page === pages - 1;
+    // Disabling a focused button drops focus to the document body. Hand focus
+    // to the other button first, so paging to either end never strands a
+    // keyboard user.
+    const active = this.#root.activeElement;
+    if (atEnd && active === this.#next) this.#prev.focus();
+    if (atStart && active === this.#prev) this.#next.focus();
+    this.#prev.disabled = atStart;
+    this.#next.disabled = atEnd;
+
+    this.#range.textContent = describePage(start, slice.length, this.#shown.length, this.#page, pages);
+    this.#pager.hidden = false;
+  }
+
+  #pageSize(): number {
+    const size = Number(this.getAttribute('page-size'));
+    return Number.isInteger(size) && size > 0 ? size : DEFAULT_PAGE_SIZE;
   }
 
   #renderViolation(violation: ParsedViolation): HTMLLIElement {

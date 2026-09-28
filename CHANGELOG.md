@@ -32,6 +32,12 @@ at a fixed count. If you are on 1.1.0, upgrade: any building with more than
   `states`/`classes` filter; `truncated` is true only when an explicit `limit`
   cut the fetch short.
 - `PAGE_SIZE` export (1,000).
+- The widget shows 50 violations at a time, with Previous and Next controls
+  and a position line ("Showing 51–100 of 3,029 · Page 2 of 61"). Set
+  `page-size` to change it. The lookup still fetches everything, so counts are
+  exact; only the rendering is paged, which keeps a 3,029-violation building to
+  50 rows in the DOM. Page changes are announced to screen readers, and focus
+  moves to the other button when one disables at either end.
 
 ### Changed
 
