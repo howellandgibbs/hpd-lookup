@@ -46,11 +46,19 @@ export function toSentenceCase(str: string | null | undefined): string {
     return PRESERVE_UPPERCASE.has(upper) ? upper : match;
   });
 
-  // "apt 4b" -> "Apt 4B", "floor 2" -> "Floor 2".
+  // "apt 4b" -> "Apt 4B", "apt b510" -> "Apt B510", "floor 2" -> "Floor 2".
+  // The unit may lead with up to two letters ("apt b510", "apt ph23") or trail
+  // with up to two ("apt 2fl"). Ordinals are excluded — "apt 2nd room" means the
+  // second room, not unit 2ND — and a digit is required, because the words HPD
+  // puts after "apt" include "to", "no", and "in".
+  // When the prefix ends a hyphenated word ("bsmt-apt s3"), only the unit is
+  // uppercased — title-casing mid-word would give "bsmt-Apt".
   out = out.replace(
-    /\b(apt|fl|floor|unit|rm|room)\s+(\d+[a-z]?)\b/gi,
-    (_m, prefix: string, num: string) =>
-      prefix.charAt(0).toUpperCase() + prefix.slice(1).toLowerCase() + ' ' + num.toUpperCase(),
+    /(^|[^\w])(apt|fl|floor|unit|rm|room)\s+((?!\d+(?:st|nd|rd|th)\b)[a-z]{0,2}\d+[a-z]{0,2})\b/gi,
+    (_m, lead: string, prefix: string, num: string) => {
+      const word = lead === '-' ? prefix.toLowerCase() : prefix.charAt(0).toUpperCase() + prefix.slice(1).toLowerCase();
+      return lead + word + ' ' + num.toUpperCase();
+    },
   );
 
   // Bare unit designators: "4b" -> "4B".
