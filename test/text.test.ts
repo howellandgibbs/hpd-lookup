@@ -35,6 +35,34 @@ describe('toSentenceCase', () => {
     expect(toSentenceCase('CLASS III VIOLATION')).toBe('Class III violation');
   });
 
+  // Units that lead with a letter. Every example below is from live records.
+  describe('letter-led apartment units', () => {
+    it('uppercases a unit that starts with a letter', () => {
+      expect(toSentenceCase('LOCATED AT APT B510, 5TH STORY')).toBe('Located at Apt B510, 5th story');
+      expect(toSentenceCase('LOCATED AT APT C4, 3RD STORY')).toBe('Located at Apt C4, 3rd story');
+    });
+
+    it('handles two leading or trailing letters', () => {
+      expect(toSentenceCase('AT APT PH23')).toBe('At Apt PH23');
+      expect(toSentenceCase('AT APT LL1')).toBe('At Apt LL1');
+      expect(toSentenceCase('AT APT 2FL')).toBe('At Apt 2FL');
+    });
+
+    it('leaves ordinals alone, because "apt 2nd room" means the second room', () => {
+      expect(toSentenceCase('LOCATED AT APT 2ND ROOM')).toBe('Located at apt 2nd room');
+    });
+
+    it('leaves ordinary words after "apt" alone', () => {
+      // HPD writes "APT TO PUBLIC HALL"; the words after "apt" include "to", "no" and "in".
+      expect(toSentenceCase('LOCATED AT APT TO PUBLIC HALL')).toBe('Located at apt to public hall');
+    });
+
+    it('does not capitalise a prefix mid-word', () => {
+      expect(toSentenceCase('LOCATED AT BSMT-APT S3')).toBe('Located at bsmt-apt S3');
+      expect(toSentenceCase('LOCATED AT BSMT-APT 1G')).toBe('Located at bsmt-apt 1G');
+    });
+  });
+
   // HPD runs the designator into the number with no space. These were all
   // taken from live records.
   describe('run-together unit designators', () => {

@@ -3,6 +3,20 @@
 All notable changes to this project are documented here. This project follows
 [semantic versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- **Letter-led apartment units stayed lower case.** `APT B510` came out as
+  "apt b510", because the casing rule only recognised units that start with a
+  digit. It now also handles units with up to two leading or trailing letters
+  (`C4`, `PH23`, `LL1`, `2FL`). Measured against 9,545 live records: 766
+  outputs change, every one casing only, and every uppercased token is a unit.
+  Ordinals are deliberately excluded — "apt 2nd room" means the second room —
+  and so are plain words, since HPD also writes "apt to public hall". A
+  hyphenated prefix is no longer capitalised mid-word: `BSMT-APT S3` reads
+  "bsmt-apt S3", not "bsmt-Apt S3".
+
 ## [1.2.0] — 2026-09-28
 
 Lookups now return every violation on a building instead of stopping silently
