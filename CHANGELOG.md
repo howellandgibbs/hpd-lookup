@@ -3,6 +3,42 @@
 All notable changes to this project are documented here. This project follows
 [semantic versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- **Lookups silently stopped at a fixed number of records.** The library
+  defaulted to 1,000 and the demo page to 50, and nothing said more existed.
+  On 1593 Fulton Street, which has 3,029 violations, the demo showed 50 and
+  announced "50 violations for 1593 FULTON STREET" — a false statement about a
+  real building, in the direction that flatters the landlord. Lookups now
+  paginate and return every record.
+- **Offset paging was unstable.** Ordering on `inspectiondate` alone gives no
+  stable order within a date, so paging with `$offset` returned some rows twice
+  and skipped others. Measured on that same 3,029-violation building: five
+  duplicated, five never returned. Ties now break on `violationid`.
+- **The widget said "No violations on record" when a filter hid them.** With
+  `states` or `classes` set, a building whose violations were all filtered out
+  was reported as having none. It now says how many are on record.
+
+### Added
+
+- `total` and `truncated` on `lookupByBBL` and `lookupByAddress` results, and
+  on the widget's `hpd-results` event. `total` counts records on file before any
+  `states`/`classes` filter; `truncated` is true only when an explicit `limit`
+  cut the fetch short.
+- `PAGE_SIZE` export (1,000).
+
+### Changed
+
+- `limit` now defaults to fetching everything, up to a 50,000-record safety
+  ceiling, instead of 1,000. Pass `limit` to cap a lookup. A large building
+  now takes several sequential requests — about 4.5 seconds for 3,029 records.
+- If any page fails, the whole lookup throws. Returning a partial list as though
+  it were complete is the failure this release exists to fix.
+- `DEFAULT_LIMIT` is deprecated and no longer affects behaviour. It is still
+  exported so existing imports compile.
+
 ## [1.1.1-rc.0] — 2026-08-21
 
 No changes to the published package. This prerelease exists to verify the

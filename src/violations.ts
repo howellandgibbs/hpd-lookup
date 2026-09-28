@@ -22,22 +22,55 @@ import { searchAddresses } from './geosearch.js';
  */
 export const SOCRATA_VIOLATIONS_URL = 'https://data.cityofnewyork.us/resource/wvxf-dwi5.json';
 
-/** Default number of violation records to request. */
+/**
+ * Records requested per page while paginating.
+ *
+ * Socrata will serve up to 50,000 in one response, but smaller pages keep each
+ * request fast and let an explicit `limit` stop the fetch without downloading
+ * far more than was asked for.
+ */
+export const PAGE_SIZE = 1000;
+
+/**
+ * Upper bound on records fetched across all pages. Only reached when no `limit`
+ * is given; it exists so a pathological BBL cannot drive an unbounded run of
+ * requests.
+ */
+export const MAX_LIMIT = 50_000;
+
+/**
+ * @deprecated Lookups now fetch every record by default, paginating as needed.
+ * This constant no longer affects behaviour and is kept only so existing
+ * imports keep compiling. Pass `limit` explicitly to cap a lookup.
+ */
 export const DEFAULT_LIMIT = 1000;
 
-/** Socrata's hard ceiling on `$limit` for a single request. */
-export const MAX_LIMIT = 50_000;
+/**
+ * Sort order for violation requests. `violationid` breaks ties within an
+ * inspection date — without it, Socrata's order within a tie is unstable, and
+ * paging with `$offset` duplicates some rows and silently skips others.
+ * Measured on a 3,029-violation building: the date-only order dropped five.
+ */
+const ORDER = 'inspectiondate DESC, violationid DESC';
 
 /**
  * Fetch and parse every HPD violation recorded against a BBL.
  *
+ * Paginates automatically, so a building with thousands of violations comes
+ * back complete rather than cut off at a page boundary. Pass `limit` to stop
+ * early; `truncated` on the result then says whether more records exist.
+ *
+ * If any page fails, the whole lookup throws. A partial list returned as though
+ * it were complete is the failure this function exists to prevent.
+ *
  * @param bbl - A 10-digit Borough-Block-Lot identifier.
  * @param options - Request, paging, and filter options.
- * @returns Parsed violations, newest inspection first.
+ * @returns Parsed violations newest inspection first, with the record count.
  * @throws {HpdLookupError} On a malformed BBL or an upstream failure.
  *
  * @example
- * const { violations } = await lookupByBBL('1000160001', { classes: ['C'] });
+ * const { violations, total } = await lookupByBBL('3016840001');
+ * // total === 3029, violations.length === 3029
  */
 export async function lookupByBBL(
   bbl: string,
@@ -48,24 +81,43 @@ export async function lookupByBBL(
     throw new HpdLookupError(`Expected a 10-digit BBL, received "${bbl}".`, { code: 'invalid_input' });
   }
 
-  const limit = clampLimit(options.limit ?? DEFAULT_LIMIT);
+  const cap = options.limit === undefined ? MAX_LIMIT : clampLimit(options.limit);
   const where = [`bbl='${cleanBBL}'`];
   if (options.since) where.push(`inspectiondate >= '${toSocrataDate(options.since)}'`);
+  const whereClause = encodeURIComponent(where.join(' AND '));
 
-  const url =
-    `${SOCRATA_VIOLATIONS_URL}?$where=${encodeURIComponent(where.join(' AND '))}` +
-    `&$order=${encodeURIComponent('inspectiondate DESC')}` +
-    `&$limit=${limit}`;
+  const raw: RawViolation[] = [];
+  let exhausted = false;
 
-  const data = await fetchJson<RawViolation[]>(url, options as RequestOptions);
-  if (!Array.isArray(data)) {
-    throw new HpdLookupError('The violations API returned an unexpected response shape.', {
-      code: 'malformed_response',
-      url,
-    });
+  while (raw.length < cap) {
+    const pageLimit = Math.min(PAGE_SIZE, cap - raw.length);
+    const url =
+      `${SOCRATA_VIOLATIONS_URL}?$where=${whereClause}` +
+      `&$order=${encodeURIComponent(ORDER)}` +
+      `&$limit=${pageLimit}&$offset=${raw.length}`;
+
+    const page = await fetchJson<RawViolation[]>(url, options as RequestOptions);
+    if (!Array.isArray(page)) {
+      throw new HpdLookupError('The violations API returned an unexpected response shape.', {
+        code: 'malformed_response',
+        url,
+      });
+    }
+
+    raw.push(...page);
+    // A short page means Socrata has nothing left to give.
+    if (page.length < pageLimit) {
+      exhausted = true;
+      break;
+    }
   }
 
-  return { bbl: cleanBBL, violations: applyFilters(data.map(parseViolation), options) };
+  return {
+    bbl: cleanBBL,
+    violations: applyFilters(raw.map(parseViolation), options),
+    total: raw.length,
+    truncated: !exhausted,
+  };
 }
 
 /**
@@ -94,13 +146,15 @@ export async function lookupByAddress(
     throw new HpdLookupError(`No NYC building matched "${address}".`, { code: 'address_not_found' });
   }
 
-  const { violations } = await lookupByBBL(building.bbl, options);
+  const { violations, total, truncated } = await lookupByBBL(building.bbl, options);
 
   return {
     bbl: building.bbl,
     building,
     alternatives: buildings.slice(1),
     violations,
+    total,
+    truncated,
   };
 }
 

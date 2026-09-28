@@ -59,11 +59,13 @@ for (const v of violations) {
 
 Resolves a free-text NYC address to a building, then fetches and parses its violations.
 
-Returns `{ bbl, building, alternatives, violations }`. `alternatives` holds the other address matches, so a UI can offer a disambiguation step without a second request. Throws an `HpdLookupError` with code `address_not_found` when no candidate resolves to a BBL.
+Returns `{ bbl, building, alternatives, violations, total, truncated }`. `alternatives` holds the other address matches, so a UI can offer a disambiguation step without a second request. Throws an `HpdLookupError` with code `address_not_found` when no candidate resolves to a BBL.
 
 ### `lookupByBBL(bbl, options?)`
 
-Same, for a building you have already identified. Takes a 10-digit Borough-Block-Lot. Returns `{ bbl, violations }`.
+Same, for a building you have already identified. Takes a 10-digit Borough-Block-Lot. Returns `{ bbl, violations, total, truncated }`.
+
+Both lookups fetch **every** violation on the building, paginating automatically — some buildings have thousands. `total` is the number of records on file (before any `states` or `classes` filter), and `truncated` is `true` only when you passed a `limit` that cut the fetch short. If any page fails, the lookup throws rather than returning a partial list.
 
 ### `searchAddresses(address, options?)`
 
@@ -127,7 +129,7 @@ It is a plain custom element with no framework runtime, because it is meant to b
 | `auto` | Look up the prefilled address on connect, without waiting for a submit |
 | `states` | Comma-separated `open`, `closed`, `dismissed` |
 | `classes` | Comma-separated HPD classes `A`, `B`, `C`, `I` |
-| `limit` | Max records to request |
+| `limit` | Stop after this many records. Omit it to fetch everything |
 | `app-token` | Socrata app token, which raises the rate limit |
 | `label` | Override the input label text |
 
@@ -176,7 +178,7 @@ Errors are written as sentences someone can act on — "No NYC building matched 
 | `signal` | `AbortSignal` | none | all requests |
 | `fetch` | `typeof fetch` | global | all requests |
 | `timeoutMs` | `number` | `15000` | all requests |
-| `limit` | `number` | `1000` | violation lookups |
+| `limit` | `number` | all (≤ 50,000) | violation lookups |
 | `states` | `ViolationState[]` | all | violation lookups |
 | `classes` | `ViolationClass[]` | all | violation lookups |
 | `since` | `string` (ISO date) | none | violation lookups |
