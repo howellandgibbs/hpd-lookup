@@ -3,6 +3,7 @@ import { searchAddresses } from '../geosearch.js';
 import { lookupByBBL } from '../violations.js';
 import { isHpdLookupError } from '../errors.js';
 import { WIDGET_STYLES } from './styles.js';
+import { summarize } from './summary.js';
 
 const DEBOUNCE_MS = 250;
 
@@ -267,12 +268,18 @@ export class HpdLookupElement extends HTMLElement {
 
     try {
       const building = known ?? (await this.#resolve(query));
-      const { violations } = await lookupByBBL(building.bbl, this.#requestOptions());
+      const { violations, total, truncated } = await lookupByBBL(
+        building.bbl,
+        this.#requestOptions(),
+      );
       if (id !== this.#requestId) return;
 
-      this.#renderResults(building, violations);
+      this.#renderResults(building, violations, total, truncated);
       this.dispatchEvent(
-        new CustomEvent('hpd-results', { detail: { building, violations }, bubbles: true }),
+        new CustomEvent('hpd-results', {
+          detail: { building, violations, total, truncated },
+          bubbles: true,
+        }),
       );
     } catch (error) {
       if (id !== this.#requestId) return;
@@ -292,14 +299,14 @@ export class HpdLookupElement extends HTMLElement {
     return building;
   }
 
-  #renderResults(building: Building, violations: ParsedViolation[]): void {
-    if (!violations.length) {
-      this.#setStatus(`No violations on record for ${building.displayLabel}.`);
-      return;
-    }
-
-    const count = violations.length === 1 ? '1 violation' : `${violations.length} violations`;
-    this.#setStatus(`${count} for ${building.displayLabel}.`);
+  #renderResults(
+    building: Building,
+    violations: ParsedViolation[],
+    total: number,
+    truncated: boolean,
+  ): void {
+    this.#setStatus(summarize(building.displayLabel, violations.length, total, truncated));
+    if (!violations.length) return;
 
     for (const violation of violations) {
       this.#results.append(this.#renderViolation(violation));

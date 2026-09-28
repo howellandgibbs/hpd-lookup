@@ -11,7 +11,7 @@
  * @packageDocumentation
  */
 
-export { lookupByAddress, lookupByBBL, SOCRATA_VIOLATIONS_URL, DEFAULT_LIMIT, MAX_LIMIT } from './violations.js';
+export { lookupByAddress, lookupByBBL, SOCRATA_VIOLATIONS_URL, PAGE_SIZE, DEFAULT_LIMIT, MAX_LIMIT } from './violations.js';
 export { searchAddresses, GEOSEARCH_URL, DEFAULT_MAX_SUGGESTIONS } from './geosearch.js';
 export { parseViolation, cleanDescription, HPD_ACTION_VERBS, CITATION_WORDS, CLASS_SEVERITY } from './parse.js';
 export type { CleanedDescription } from './parse.js';

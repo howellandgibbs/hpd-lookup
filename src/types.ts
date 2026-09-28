@@ -162,7 +162,11 @@ export interface RequestOptions {
 
 /** Options for violation lookups. */
 export interface ViolationLookupOptions extends RequestOptions {
-  /** Max records to fetch from Socrata. Default 1000, upstream max 50000. */
+  /**
+   * Stop after this many records. Omit it to fetch every violation on the
+   * building, paginating as needed (up to a 50,000-record safety ceiling).
+   * When the cap cuts a lookup short, the result's `truncated` is `true`.
+   */
   limit?: number;
   /** Only return violations in these states. Default: all. */
   states?: ViolationState[];
@@ -188,6 +192,17 @@ export interface AddressLookupResult {
   alternatives: Building[];
   /** Parsed violations for `bbl`, newest inspection first. */
   violations: ParsedViolation[];
+  /**
+   * How many violation records the building has, counted before any `states`
+   * or `classes` filter is applied — so it can exceed `violations.length`.
+   * Exact when `truncated` is false.
+   */
+  total: number;
+  /**
+   * `true` when fetching stopped at `limit` and more records may exist. Never
+   * true when `limit` is omitted, short of the 50,000-record safety ceiling.
+   */
+  truncated: boolean;
 }
 
 /** Result of a BBL lookup. */
@@ -195,4 +210,15 @@ export interface BBLLookupResult {
   bbl: string;
   /** Parsed violations for `bbl`, newest inspection first. */
   violations: ParsedViolation[];
+  /**
+   * How many violation records the building has, counted before any `states`
+   * or `classes` filter is applied — so it can exceed `violations.length`.
+   * Exact when `truncated` is false.
+   */
+  total: number;
+  /**
+   * `true` when fetching stopped at `limit` and more records may exist. Never
+   * true when `limit` is omitted, short of the 50,000-record safety ceiling.
+   */
+  truncated: boolean;
 }
