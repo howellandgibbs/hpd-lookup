@@ -130,6 +130,7 @@ It is a plain custom element with no framework runtime, because it is meant to b
 | `states` | Comma-separated `open`, `closed`, `dismissed` |
 | `classes` | Comma-separated HPD classes `A`, `B`, `C`, `I` |
 | `limit` | Stop after this many records. Omit it to fetch everything |
+| `page-size` | Violations shown per page, with Previous/Next controls. Default 50 |
 | `app-token` | Socrata app token, which raises the rate limit |
 | `label` | Override the input label text |
 

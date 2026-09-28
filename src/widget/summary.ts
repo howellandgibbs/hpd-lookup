@@ -22,3 +22,12 @@ export function summarize(place: string, shown: number, total: number, truncated
   if (shown < total) return `${n(shown)} of ${n(total)} violations for ${place}.`;
   return `${n(total)} ${noun(total)} for ${place}.`;
 }
+
+/**
+ * The pager's position line, e.g. "Showing 51–100 of 3,029 · Page 2 of 61".
+ * Also what the page-change announcement reads out.
+ */
+export function describePage(start: number, count: number, of: number, page: number, pages: number): string {
+  const n = (value: number) => value.toLocaleString('en-US');
+  return `Showing ${n(start + 1)}–${n(start + count)} of ${n(of)} · Page ${page + 1} of ${pages}`;
+}
